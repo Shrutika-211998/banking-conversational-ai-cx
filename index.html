@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartBank Assistant</title>
+
+<style>
+    body {
+        margin: 0;
+        font-family: 'Segoe UI', sans-serif;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
+    .chat-container {
+        width: 380px;
+        height: 650px;
+        background: #ffffff;
+        border-radius: 20px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .chat-header {
+        background: #1e88e5;
+        color: white;
+        padding: 20px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: 600;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background: #f4f6f9;
+    }
+
+    .message {
+        margin-bottom: 12px;
+        padding: 10px 14px;
+        border-radius: 15px;
+        max-width: 75%;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+    .bot {
+        background: #e3f2fd;
+        align-self: flex-start;
+        border-bottom-left-radius: 5px;
+    }
+
+    .user {
+        background: #1e88e5;
+        color: white;
+        align-self: flex-end;
+        border-bottom-right-radius: 5px;
+    }
+
+    .chat-input {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #ddd;
+        background: white;
+    }
+
+    .chat-input input {
+        flex: 1;
+        padding: 10px;
+        border-radius: 20px;
+        border: 1px solid #ccc;
+        outline: none;
+    }
+
+    .chat-input button {
+        margin-left: 8px;
+        padding: 10px 15px;
+        border-radius: 50%;
+        border: none;
+        background: #1e88e5;
+        color: white;
+        cursor: pointer;
+    }
+
+    .quick-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 8px;
+    }
+
+    .quick-options button {
+        padding: 6px 10px;
+        border-radius: 20px;
+        border: none;
+        font-size: 12px;
+        background: #e0e0e0;
+        cursor: pointer;
+    }
+
+</style>
+</head>
+<body>
+
+<div class="chat-container">
+
+    <div class="chat-header">
+        💬 SmartBank Assistant
+    </div>
+
+    <div class="chat-messages" id="messages">
+        <div class="message bot">
+            Welcome to SmartBank 👋 <br>
+            Please enter your Customer ID to begin.
+        </div>
+    </div>
+
+    <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Type your message..." />
+        <button onclick="sendMessage()">➤</button>
+    </div>
+
+</div>
+
+<script>
+let sessionId = null;
+
+async function sendMessage() {
+    const input = document.getElementById("userInput");
+    const messageText = input.value.trim();
+    if (messageText === "") return;
+
+    addMessage(messageText, "user");
+    input.value = "";
+
+    try {
+        const response = await fetch("/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                message: messageText,
+                session_id: sessionId
+            })
+        });
+
+        const data = await response.json();
+
+        sessionId = data.session_id;
+
+        addMessage(data.reply, "bot");
+
+    } catch (error) {
+        addMessage("Error connecting to server.", "bot");
+    }
+}
+
+function addMessage(text, sender) {
+    const messages = document.getElementById("messages");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", sender);
+    messageDiv.innerHTML = text;
+    messages.appendChild(messageDiv);
+    messages.scrollTop = messages.scrollHeight;
+}
+</script>
+</body>
+</html>
